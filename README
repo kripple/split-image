@@ -1,0 +1,3 @@
+# split-image
+
+Usage example: `node dist/split.js map.png`

@@ -14,32 +14,35 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
 
     /* Path resolution */
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["./src/*"]
     },
+
+    /* do not output tsconfig.tsbuildinfo */
+    "incremental": false,
+
+    /* no extra files */
+    "declaration": false,
+    "sourceMap": false,
 
     /* Make the linting useful again */
     "allowJs": true,
     "strictNullChecks": true,
-    "baseUrl": ".",
     "forceConsistentCasingInFileNames": true,
     "noErrorTruncation": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
-    "declaration": true,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "composite": true
+    "esModuleInterop": true
+  },
+
+  /* resolve path aliases for node */
+  "tsc-alias": {
+    "resolveFullPaths": true
   }
 }
