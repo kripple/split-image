@@ -1,82 +1,100 @@
 import { program } from 'commander';
-import { getImagePath } from '@/getImagePath';
-// import sharp from 'sharp';
+import { getInputPath, getOutputPath } from '@/getPath';
+import { getImage } from '@/getImage';
+import { getImageMetadata } from '@/getImageMetadata';
+import sharp, {
+  type FormatEnum,
+  type Metadata,
+  type Sharp as SharpImage,
+} from 'sharp';
 
-// export function getImage(imagePath: string) {
-//   return sharp(imagePath);
-//   // .extract({ left, top, width, height })
-//   // .toFile(output, function (err) {
-//   //   // Extract a region of the input image, saving in the same format.
-//   // });
-// }
-
-// TODO: use genversion (or something) to print the actual version
 program
   .option('-d, --debug', 'enable debug logs')
-  .version('0.0.1', '-v, --version', 'output the current version');
+  .option('-h, --height')
+  .option('-w, --width');
 program.parse(process.argv);
 
 const [fileName, fileExtension] = program.args[0].split('.');
 const options = program.opts();
 
-const imagePath = getImagePath({ fileName, fileExtension, options });
-// console.log(getImage(imagePath));
+const inputPath = getInputPath({ fileName, fileExtension, options });
+const image = getImage({ inputPath, options });
+const metadata = await getImageMetadata({ image, options });
+const imageHeight = metadata.height;
+const imageWidth = metadata.width;
 
-// const rows = Math.ceil(imageHeight / pageHeight);
-// const columns = Math.ceil(imageWidth / pageWidth);
-// // const pageCount = rows * columns;
+// density may not be accurate depending on use case
+const pixelsPerInch = metadata.density || 72;
+const getPixels = (inches: number) => inches * pixelsPerInch;
 
-// // setRows(Math.ceil(jimpImage.getHeight() / pageHeight));
-// // setColumns(Math.ceil(jimpImage.getWidth() / pageWidth));
+const selectedFragmentWidth = options?.width || 7;
+const selectedFragmentHeight = options?.height || 8;
+const fragmentWidth = getPixels(selectedFragmentWidth);
+const fragmentHeight = getPixels(selectedFragmentHeight);
 
-// const totalHeight = rows * pageHeight;
-// const totalWidth = columns * pageWidth;
+const rows = Math.ceil(imageHeight / fragmentHeight);
+const columns = Math.ceil(imageWidth / fragmentWidth);
+if (options?.debug) console.log('rows:', rows);
+if (options?.debug) console.log('columns:', columns);
+if (options?.debug) console.log('fragment count:', rows * columns);
 
-// // const centerAlign = Math.floor((totalWidth - imageWidth) / 2);
-// const centerAlign = (totalWidth - imageWidth) / 2;
-// const verticalAlign = (totalHeight - imageHeight) / 2;
+const totalHeight = rows * fragmentHeight;
+const totalWidth = columns * fragmentWidth;
+if (options?.debug) console.log('totalHeight:', totalHeight);
+if (options?.debug) console.log('totalWidth:', totalWidth);
 
-// const pages: any = {};
+const centerAlign = Math.floor((totalWidth - imageWidth) / 2);
+const verticalAlign = Math.floor((totalHeight - imageHeight) / 2);
+if (options?.debug) console.log('centerAlign:', centerAlign);
+if (options?.debug) console.log('verticalAlign:', verticalAlign);
 
-// for (let row = 1; row <= rows; row++) {
-//   for (let column = 1; column <= columns; column++) {
-//     const key = `${row}-${column}`;
-//     const alignment = getAlignment(column, columns, row, rows);
+for (let row = 1; row <= rows; row++) {
+  for (let column = 1; column <= columns; column++) {
+    const fragmentIndex = column + (row - 1) * columns;
+    // const alignment = getAlignment(column, columns, row, rows);
 
-//     const yPosition =
-//       row === 1
-//         ? (row - 1) * pageHeight
-//         : (row - 1) * pageHeight - verticalAlign;
-//     const height =
-//       row === 1
-//         ? pageHeight - verticalAlign
-//         : yPosition + pageHeight > imageHeight
-//         ? imageHeight - yPosition
-//         : pageHeight;
+    const top =
+      row === 1
+        ? (row - 1) * fragmentHeight
+        : (row - 1) * fragmentHeight - verticalAlign;
+    const height =
+      row === 1
+        ? fragmentHeight - verticalAlign
+        : top + fragmentHeight > imageHeight
+        ? imageHeight - top
+        : fragmentHeight;
 
-//     const xPosition =
-//       column === 1
-//         ? (column - 1) * pageWidth
-//         : (column - 1) * pageWidth - centerAlign;
-//     const width =
-//       column === 1
-//         ? pageWidth - centerAlign
-//         : xPosition + pageWidth > imageWidth
-//         ? imageWidth - xPosition
-//         : pageWidth;
+    const left =
+      column === 1
+        ? (column - 1) * fragmentWidth
+        : (column - 1) * fragmentWidth - centerAlign;
+    const width =
+      column === 1
+        ? fragmentWidth - centerAlign
+        : left + fragmentWidth > imageWidth
+        ? imageWidth - left
+        : fragmentWidth;
 
-//     pages[key] = {
-//       alignment,
-//       xPosition,
-//       yPosition,
-//       width,
-//       height,
-//       pageHeight,
-//       pageWidth,
-//       row,
-//       column,
-//       image: jimpImage.clone().crop(xPosition, yPosition, width, height),
-//     };
+    if (options?.debug)
+      console.log('fragment:', {
+        fragmentIndex,
+        row,
+        column,
+        left,
+        top,
+        width,
+        height,
+      });
 
-//   }
-// }
+    const outputPath = getOutputPath({
+      fileName: `${fileName}-${fragmentIndex}`,
+      fileExtension,
+      options,
+    });
+
+    await image
+      .clone()
+      .extract({ left, top, width, height })
+      .toFile(outputPath);
+  }
+}
