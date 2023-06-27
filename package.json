@@ -1,0 +1,26 @@
+{
+  "name": "split-image",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsc",
+    "lint": "eslint",
+    "test": "node dist/main.js -s / --first a/b/c"
+  },
+  "devDependencies": {
+    "@types/node": "^20.3.2",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "eslint": "^8.40.0",
+    "prettier": "^2.8.8",
+    "typescript": "^5.1.3"
+  },
+  "imports": {
+    "@/*": "./src/*"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "esbuild": "0.18.10",
+    "sharp": "^0.32.1"
+  }
+}
