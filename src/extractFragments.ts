@@ -27,15 +27,18 @@ export async function extractFragments({
   fileExtension: string;
   image: JimpImage | SharpImage;
 }) {
-  const totalHeight = rows * fragmentHeight;
-  const totalWidth = columns * fragmentWidth;
-  if (options?.debug) console.log('totalHeight:', totalHeight);
-  if (options?.debug) console.log('totalWidth:', totalWidth);
-
-  const centerAlignOffset = Math.floor((totalWidth - imageWidth) / 2);
-  const verticalAlignOffset = Math.floor((totalHeight - imageHeight) / 2);
-  if (options?.debug) console.log('centerAlignOffset:', centerAlignOffset);
-  if (options?.debug) console.log('verticalAlignOffset:', verticalAlignOffset);
+  const horizontalOffset = getOffset({
+    fragmentSize: fragmentWidth,
+    count: columns,
+    imageSize: imageWidth,
+  });
+  if (options?.debug) console.log('horizontalOffset:', horizontalOffset);
+  const verticalOffset = getOffset({
+    fragmentSize: fragmentHeight,
+    count: rows,
+    imageSize: imageHeight,
+  });
+  if (options?.debug) console.log('verticalOffset:', verticalOffset);
 
   for (let row = 1; row <= rows; row++) {
     for (let column = 1; column <= columns; column++) {
@@ -52,11 +55,25 @@ export async function extractFragments({
         fileName,
         fileExtension,
         image,
-        centerAlignOffset,
-        verticalAlignOffset,
+        horizontalOffset,
+        verticalOffset,
       });
     }
   }
+}
+
+export function getOffset({
+  fragmentSize,
+  count,
+  imageSize,
+}: {
+  fragmentSize: number;
+  count: number;
+  imageSize: number;
+}) {
+  if (fragmentSize > imageSize) return 0;
+  const totalHeight = count * fragmentSize;
+  return Math.floor((totalHeight - imageSize) / 2);
 }
 
 export async function extractFragment({
@@ -72,8 +89,8 @@ export async function extractFragment({
   fileName,
   fileExtension,
   image,
-  verticalAlignOffset,
-  centerAlignOffset,
+  verticalOffset,
+  horizontalOffset,
 }: {
   fragmentHeight: number;
   fragmentWidth: number;
@@ -87,8 +104,8 @@ export async function extractFragment({
   fileName: string;
   fileExtension: string;
   image: JimpImage | SharpImage;
-  verticalAlignOffset: number;
-  centerAlignOffset: number;
+  verticalOffset: number;
+  horizontalOffset: number;
 }) {
   const fragmentIndex = column + (row - 1) * columns;
   const alignment = getAlignment(column, columns, row, rows);
@@ -100,8 +117,8 @@ export async function extractFragment({
     column,
     imageHeight,
     imageWidth,
-    verticalAlignOffset,
-    centerAlignOffset,
+    verticalOffset,
+    horizontalOffset,
   });
 
   if (options?.debug)
@@ -136,8 +153,8 @@ export function getExtractionOptions({
   column,
   imageHeight,
   imageWidth,
-  verticalAlignOffset,
-  centerAlignOffset,
+  verticalOffset,
+  horizontalOffset,
 }: {
   fragmentHeight: number;
   fragmentWidth: number;
@@ -145,30 +162,114 @@ export function getExtractionOptions({
   column: number;
   imageHeight: number;
   imageWidth: number;
-  verticalAlignOffset: number;
-  centerAlignOffset: number;
+  verticalOffset: number;
+  horizontalOffset: number;
 }) {
-  const top =
-    row === 1
-      ? (row - 1) * fragmentHeight
-      : (row - 1) * fragmentHeight - verticalAlignOffset;
+  const top = getTop({
+    fragmentHeight,
+    row,
+    verticalOffset,
+  });
   const height =
     row === 1
-      ? fragmentHeight - verticalAlignOffset
+      ? fragmentHeight - verticalOffset
       : top + fragmentHeight > imageHeight
       ? imageHeight - top
       : fragmentHeight;
 
-  const left =
-    column === 1
-      ? (column - 1) * fragmentWidth
-      : (column - 1) * fragmentWidth - centerAlignOffset;
+  const left = getLeft({
+    fragmentWidth,
+    column,
+    horizontalOffset,
+  });
   const width =
     column === 1
-      ? fragmentWidth - centerAlignOffset
+      ? fragmentWidth - horizontalOffset
       : left + fragmentWidth > imageWidth
       ? imageWidth - left
       : fragmentWidth;
 
   return { left, top, width, height };
+}
+
+export function getTop({
+  fragmentHeight,
+  row,
+  verticalOffset,
+}: {
+  fragmentHeight: number;
+  row: number;
+  verticalOffset: number;
+}) {
+  const top =
+    row === 1
+      ? (row - 1) * fragmentHeight
+      : (row - 1) * fragmentHeight - verticalOffset;
+  return top;
+}
+
+export function getLeft({
+  fragmentWidth,
+  column,
+  horizontalOffset,
+}: {
+  fragmentWidth: number;
+  column: number;
+  horizontalOffset: number;
+}) {
+  const left =
+    column === 1
+      ? (column - 1) * fragmentWidth
+      : (column - 1) * fragmentWidth - horizontalOffset;
+  return left;
+}
+
+export function getHeight({
+  fragmentHeight,
+  row,
+  imageHeight,
+  verticalOffset,
+}: {
+  fragmentHeight: number;
+  row: number;
+  imageHeight: number;
+  verticalOffset: number;
+}) {
+  const top = getTop({
+    fragmentHeight,
+    row,
+    verticalOffset,
+  });
+  const height =
+    row === 1
+      ? fragmentHeight - verticalOffset
+      : top + fragmentHeight > imageHeight
+      ? imageHeight - top
+      : fragmentHeight;
+  return height;
+}
+
+export function getWidth({
+  fragmentWidth,
+  column,
+  imageWidth,
+  horizontalOffset,
+}: {
+  fragmentWidth: number;
+  column: number;
+  imageWidth: number;
+  horizontalOffset: number;
+}) {
+  const left = getLeft({
+    fragmentWidth,
+    column,
+    horizontalOffset,
+  });
+  const width =
+    column === 1
+      ? fragmentWidth - horizontalOffset
+      : left + fragmentWidth > imageWidth
+      ? imageWidth - left
+      : fragmentWidth;
+  return width;
 }
