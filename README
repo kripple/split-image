@@ -1,8 +1,0 @@
-# split-image
-
-Usage example: `node dist/split.js map.png`
-
-## TODO
-
-- add test cases
-- how to determine image size / pixel density / use image dimensions as an input

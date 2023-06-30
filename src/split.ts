@@ -7,9 +7,9 @@ import { extractFragments } from '@/extractFragments';
 
 program
   .option('-d, --debug', 'enable debug logs')
-  .option('-p, --pixels-per-inch <value>')
-  .option('-h, --height <value>')
-  .option('-w, --width <value>');
+  .option('-p, --pixels-per-inch <value>', 'pixel density')
+  .option('-h, --height <value>', 'desired fragment height in inches')
+  .option('-w, --width <value>', 'desired fragment width in inches');
 program.parse(process.argv);
 
 const [fileName, fileExtension] = program.args[0].split('.');
