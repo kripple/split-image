@@ -8,7 +8,7 @@
     "build": "tsc && tsc-alias",
     "lint": "eslint .",
     "test": "vitest run",
-    "debug": "node dist/split.js map.png -d"
+    "debug": "node dist/split.js map.png --debug"
   },
   "devDependencies": {
     "@types/node": "^20.3.2",
