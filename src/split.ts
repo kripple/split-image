@@ -33,11 +33,11 @@ const fragmentHeight = getPixels(selectedFragmentHeight);
 
 const rows = Math.ceil(imageHeight / fragmentHeight);
 const columns = Math.ceil(imageWidth / fragmentWidth);
-const fragmentCount = rows * columns;
+const columnRow = rows * columns;
 if (options?.debug) console.log('rows:', rows);
 if (options?.debug) console.log('columns:', columns);
-if (options?.debug) console.log('fragment count:', fragmentCount);
-if (fragmentCount > config.maxFragments) throw Error('too many fragments');
+if (options?.debug) console.log('fragment columnRow:', columnRow);
+if (columnRow > config.maxFragments) throw Error('too many fragments');
 
 extractFragments({
   fragmentHeight,
