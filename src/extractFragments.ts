@@ -35,7 +35,7 @@ export async function extractFragments(props: Props & ImageProps) {
   }
 }
 
-export async function extractFragment({
+async function extractFragment({
   fileName,
   fileExtension,
   image,
@@ -48,11 +48,11 @@ export async function extractFragment({
   const { column, columns, row, rows, options } = extractionProps;
   const fragmentIndex = column + (row - 1) * columns;
   const alignment = getAlignment(column, columns, row, rows);
-
   const extractionOptions = getExtractionOptions(extractionProps);
 
   if (options?.debug)
     console.log('fragment:', {
+      alignment,
       fragmentIndex,
       fragmentHeight: extractionProps.fragmentHeight,
       fragmentWidth: extractionProps.fragmentWidth,
@@ -75,11 +75,13 @@ export async function extractFragment({
   }
 }
 
-export function getExtractionOptions({
+function getExtractionOptions({
   fragmentHeight,
   fragmentWidth,
   row,
+  rows,
   column,
+  columns,
   imageHeight,
   imageWidth,
 }: Props & {
@@ -108,17 +110,13 @@ export function getExtractionOptions({
 
   const height = getLength({
     fragmentSize: fragmentHeight,
-    columnRow: row,
     imageSize: imageHeight,
-    offset: verticalOffset,
-    position: top,
+    firstOrLast: row === 1 || row === rows,
   });
   const width = getLength({
     fragmentSize: fragmentWidth,
-    columnRow: column,
     imageSize: imageWidth,
-    offset: horizontalOffset,
-    position: left,
+    firstOrLast: column === 1 || column === columns,
   });
 
   return { left, top, width, height };

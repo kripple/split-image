@@ -1,21 +1,20 @@
+import { getOffset } from '@/getOffset';
+
 export function getLength({
   fragmentSize,
-  columnRow,
   imageSize,
-  offset,
-  position,
+  firstOrLast,
 }: {
   fragmentSize: number;
-  columnRow: number;
   imageSize: number;
-  offset: number;
-  position: number;
+  firstOrLast: boolean;
 }) {
-  const length =
-    columnRow === 1
-      ? fragmentSize - offset
-      : position + fragmentSize > imageSize
-      ? imageSize - position
-      : fragmentSize;
-  return length;
+  if (firstOrLast) {
+    const offset = getOffset({
+      fragmentSize,
+      imageSize,
+    });
+    return fragmentSize - offset;
+  }
+  return fragmentSize;
 }
